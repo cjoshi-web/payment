@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD Operations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-accent: #6366f1; /* Indigo 500 */
+            --primary-accent-dark: #4f46e5; /* Indigo 600 */
+            --secondary-text: #4b5563; /* Gray 700 */
+            --light-bg: #f5f7fa; /* Lighter off-white */
+            --card-bg: #ffffff;
+            --border-light: #e0e7ed; /* Very light gray-blue */
+            --shadow-subtle: 0 1px 3px rgba(0,0,0,0.06);
+            --shadow-medium: 0 8px 25px rgba(0,0,0,0.08); /* More pronounced shadow */
+            --success-color: #22c55e;
+            --danger-color: #ef4444;
+            --info-color: #3b82f6;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--secondary-text);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top for better content flow */
+            min-height: 100vh;
+            padding: 3rem 1.5rem; /* More overall padding */
+            box-sizing: border-box;
+        }
+        .container {
+            width: 100%;
+            max-width: 1350px; /* Even wider container */
+            margin: 0 auto;
+            padding: 3rem; /* Increased padding */
+            background-color: var(--card-bg);
+            box-shadow: var(--shadow-medium); /* More prominent shadow for main container */
+            border-radius: 20px; /* Even more rounded corners */
+            overflow: hidden;
+            display: flex; /* Use flexbox for layout */
+            flex-direction: column;
+            gap: 2.5rem; /* Space between title and sections */
+        }
+        h1 {
+            color: #1a202c;
+            text-align: center;
+            margin-bottom: 0; /* Managed by container gap */
+            font-weight: 800; /* Extra bold */
+            font-size: 3.2rem; /* Even larger title */
+            letter-spacing: -0.06em;
+            line-height: 1.1;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Subtle text shadow */
+        }
+        h2 {
+            font-size: 2rem; /* Larger section titles */
+            font-weight: 700;
+            color: #1f2937; /* Darker heading text */
+            margin-bottom: 1.75rem; /* More space below section title */
+        }
+
+        .form-section, .table-section {
+            padding: 2.5rem; /* Consistent, generous padding */
+            background-color: var(--card-bg); /* Match card background */
+            border: 1px solid var(--border-light);
+            border-radius: 16px; /* Slightly less than main container for nested card effect */
+            box-shadow: var(--shadow-subtle); /* Subtle shadow for inner cards */
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+        }
+        .form-section:hover, .table-section:hover {
+            transform: translateY(-5px); /* Lift effect on hover */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); /* More pronounced shadow on hover */
+        }
+
+        .form-group {
+            margin-bottom: 1rem; /* Slightly more space */
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.6rem; /* More space below label */
+            font-weight: 600;
+            color: var(--secondary-text);
+            font-size: 0.95rem; /* Slightly larger label font */
+            opacity: 0.95;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem 1.2rem; /* Generous input padding */
+            border: 1px solid var(--border-light);
+            border-radius: 12px; /* More rounded inputs */
+            font-size: 1rem; /* Standard input font size */
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            background-color: #fdfefe; /* Very light input background */
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2); /* Softer, slightly larger focus shadow */
+        }
+
+        .btn {
+            padding: 0.9rem 2.2rem; /* Even larger buttons */
+            border-radius: 14px; /* Very rounded buttons */
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Springy transition */
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Standard button shadow */
+            letter-spacing: 0.03em;
+            text-transform: uppercase; /* Uppercase text for buttons */
+        }
+        .btn:hover {
+            transform: translateY(-5px); /* More pronounced lift on hover */
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15); /* Darker, larger shadow on hover */
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-accent), var(--primary-accent-dark)); /* Diagonal gradient */
+            color: white;
+            border: none;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-accent-dark), #3730a3); /* Darker on hover */
+        }
+        .btn-secondary {
+            background-color: #9ca3af; /* Gray 400 */
+            color: white;
+            border: none;
+        }
+        .btn-secondary:hover {
+            background-color: #6b7280; /* Gray 500 */
+        }
+        .btn-delete {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+        }
+        .btn-delete:hover {
+            background-color: var(--danger-red-dark);
+        }
+        .btn-edit {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+        }
+        .btn-edit:hover {
+            background-color: var(--success-green-dark);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2.5rem; /* More space above table */
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-subtle);
+        }
+        th, td {
+            padding: 1.2rem 1.5rem; /* Increased padding for table cells */
+            border-bottom: 1px solid #f2f5f7; /* Very light border */
+            text-align: left;
+        }
+        th {
+            background-color: #eef2f6; /* Lighter header background */
+            font-weight: 700;
+            color: #374151; /* Darker text for headers */
+            text-transform: uppercase;
+            font-size: 0.85rem; /* Slightly larger header font */
+            letter-spacing: 0.04em;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        tr:nth-child(even) {
+            background-color: #fcfdff; /* Even more subtle stripe */
+        }
+        tr:hover {
+            background-color: #eef8ff; /* Very light blue on row hover */
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Subtle shadow on row hover */
+        }
+        .actions-cell {
+            white-space: nowrap;
+        }
+        .actions-cell button {
+            margin-right: 0.8rem; /* More spacing between action buttons */
+        }
+
+        /* Search input specific styles */
+        #searchKeyword {
+            padding: 0.9rem 1.4rem; /* More padding for search input */
+            font-size: 1rem; /* Standard font size */
+            border-radius: 12px;
+            box-shadow: var(--shadow-subtle);
+            border-color: #d1d5db;
+        }
+        #searchKeyword:focus {
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+        }
+
+
+        /* Custom Modal Styling */
+        #confirmationModalOverlay {
+            background-color: rgba(17, 24, 39, 0.7); /* Darker, more opaque overlay */
+        }
+        #confirmationModalOverlay > div {
+            padding: 2.5rem;
+            border-radius: 18px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2); /* Stronger modal shadow */
+        }
+        #confirmationModalOverlay p {
+            font-size: 1.25rem; /* Larger modal message */
+            font-weight: 500;
+            color: #1f2937;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px) scale(0.9); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1024px) {
+            .container {
+                padding: 2.5rem 2rem;
+                max-width: 95%;
+            }
+            h1 {
+                font-size: 2.8rem;
+            }
+            .form-section, .table-section {
+                padding: 2rem;
+            }
+            .form-group input {
+                padding: 0.7rem 1rem;
+                font-size: 0.95rem;
+            }
+            .btn {
+                padding: 0.8rem 1.8rem;
+                font-size: 0.9rem;
+            }
+            th, td {
+                padding: 1rem 1.2rem;
+                font-size: 0.8rem;
+            }
+            #searchKeyword {
+                padding: 0.8rem 1.2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 2rem 1.5rem;
+            }
+            h1 {
+                font-size: 2.2rem;
+                margin-bottom: 2rem;
+            }
+            h2 {
+                font-size: 1.75rem;
+            }
+            .form-section, .table-section {
+                padding: 1.5rem;
+                margin-bottom: 2rem;
+            }
+            .form-group input {
+                padding: 0.6rem 0.9rem;
+                font-size: 0.85rem;
+            }
+            .btn {
+                padding: 0.7rem 1.4rem;
+                font-size: 0.85rem;
+            }
+            th, td {
+                padding: 0.8rem 1rem;
+                font-size: 0.75rem;
+            }
+            .flex-col.sm:flex-row {
+                flex-direction: column;
+                align-items: stretch; /* Stretch items to full width */
+            }
+            .sm:space-y-0.sm:space-x-3 {
+                margin-bottom: 1.5rem; /* Adjusted spacing for stacked buttons */
+                gap: 1rem; /* Space between stacked buttons/input */
+            }
+            #searchKeyword {
+                padding: 0.7rem 1rem;
+            }
+            .actions-cell button {
+                margin-right: 0.5rem;
+                padding: 0.6rem 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 1.5rem 1rem;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+            h2 {
+                font-size: 1.5rem;
+            }
+            .form-section, .table-section {
+                padding: 1rem;
+            }
+            .btn {
+                width: 100%; /* Full width buttons on very small screens */
+                margin-bottom: 0.75rem;
+            }
+            .col-span-1.sm\:col-span-2.lg\:col-span-4.flex.justify-end.space-x-4.mt-6 {
+                flex-direction: column;
+                align-items: stretch;
+                space-x: 0; /* Remove horizontal space */
+            }
+            .flex.flex-col.sm\:flex-row {
+                gap: 0.75rem;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CRUD Operations: Declaration Data</h1>
+
+        <!-- Form Section -->
+        <div class="form-section">
+            <h2 class="text-2xl font-semibold mb-6 text-gray-800">Add/Edit Declaration</h2>
+            <form id="declarationForm" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-4">
+                <input type="hidden" id="declarationId">
+
+                <div class="form-group">
+                    <label for="declarationNo">Declaration No.</label>
+                    <input type="text" id="declarationNo" required class="rounded-lg">
+                </div>
+
+                <div class="form-group">
+                    <label for="paymentId">Payment ID</label>
+                    <input type="text" id="paymentId" required class="rounded-lg">
+                </div>
+
+                <div class="form-group">
+                    <label for="paymentDate">Payment Date</label>
+                    <input type="date" id="paymentDate" required class="rounded-lg">
+                </div>
+
+                <div class="form-group">
+                    <label for="customDuty">Custom Duty</label>
+                    <input type="number" id="customDuty" step="0.01" required class="rounded-lg">
+                </div>
+
+                <div class="form-group">
+                    <label for="vat">VAT</label>
+                    <input type="number" id="vat" step="0.01" required class="rounded-lg">
+                </div>
+
+                <div class="form-group">
+                    <label for="boeOtherCharges">BOE + Other Charges</label>
+                    <input type="number" id="boeOtherCharges" step="0.01" required class="rounded-lg">
+                </div>
+
+                <div class="form-group">
+                    <label for="payer">Payer</label>
+                    <input type="text" id="payer" required class="rounded-lg">
+                </div>
+
+                <div class="form-group">
+                    <label for="remarks">Remarks</label>
+                    <input type="text" id="remarks" class="rounded-lg">
+                </div>
+
+                <div class="col-span-1 sm:col-span-2 lg:col-span-4 flex justify-end space-x-4 mt-6">
+                    <button type="submit" class="btn btn-primary rounded-lg">Add/Update Declaration</button>
+                    <button type="button" id="clearFormBtn" class="btn btn-secondary rounded-lg">Clear Form</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Table Section -->
+        <div class="table-section">
+            <h2 class="text-2xl font-semibold mb-6 text-gray-800">Declaration List</h2>
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center mb-6 space-y-3 sm:space-y-0 sm:space-x-3">
+                <input type="text" id="searchKeyword" placeholder="Search by Declaration No., Payment ID, Payer, Remarks..." class="flex-grow rounded-lg p-3 border border-gray-300 focus:border-blue-400 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition-all duration-200">
+                <button id="searchBtn" class="btn btn-primary rounded-lg flex-shrink-0">Search</button>
+                <button id="clearSearchBtn" class="btn btn-secondary rounded-lg flex-shrink-0">Clear Search</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead>
+                        <tr>
+                            <th>Declaration No.</th>
+                            <th>Payment ID</th>
+                            <th>Payment Date</th>
+                            <th>Custom Duty</th>
+                            <th>VAT</th>
+                            <th>BOE + Other Charges</th>
+                            <th>Payer</th>
+                            <th>Remarks</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="declarationTableBody">
+                        <!-- Data rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Array to store declaration data
+        let declarations = [];
+        let currentEditId = null; // To keep track of the ID being edited
+
+        // Get form elements
+        const declarationForm = document.getElementById('declarationForm');
+        const declarationIdInput = document.getElementById('declarationId');
+        const declarationNoInput = document.getElementById('declarationNo');
+        const paymentIdInput = document.getElementById('paymentId');
+        const paymentDateInput = document.getElementById('paymentDate');
+        const customDutyInput = document.getElementById('customDuty');
+        const vatInput = document.getElementById('vat');
+        const boeOtherChargesInput = document.getElementById('boeOtherCharges');
+        const payerInput = document.getElementById('payer');
+        const remarksInput = document.getElementById('remarks');
+        const clearFormBtn = document.getElementById('clearFormBtn');
+        const declarationTableBody = document.getElementById('declarationTableBody');
+        const searchKeywordInput = document.getElementById('searchKeyword');
+        const searchBtn = document.getElementById('searchBtn');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+
+        /**
+         * Generates a unique ID for new declarations.
+         * @returns {string} A unique ID string.
+         */
+        function generateUniqueId() {
+            return 'decl_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        /**
+         * Displays declarations in the table.
+         * @param {Array<Object>} [dataToDisplay=declarations] - The array of declarations to display.
+         * Defaults to the global 'declarations' array.
+         */
+        function displayDeclarations(dataToDisplay = declarations) {
+            // Ensure dataToDisplay is an array before proceeding
+            if (!Array.isArray(dataToDisplay)) {
+                console.error("displayDeclarations received non-array data:", dataToDisplay);
+                dataToDisplay = []; // Fallback to an empty array to prevent error
+            }
+
+            declarationTableBody.innerHTML = ''; // Clear existing rows
+
+            if (dataToDisplay.length === 0) {
+                const noDataRow = document.createElement('tr');
+                noDataRow.innerHTML = `<td colspan="9" class="text-center py-4 text-gray-500">No declarations found. Add one!</td>`;
+                declarationTableBody.appendChild(noDataRow);
+                return;
+            }
+
+            dataToDisplay.forEach(decl => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${decl.declarationNo}</td>
+                    <td>${decl.paymentId}</td>
+                    <td>${decl.paymentDate}</td>
+                    <td>${decl.customDuty.toFixed(2)}</td>
+                    <td>${decl.vat.toFixed(2)}</td>
+                    <td>${decl.boeOtherCharges.toFixed(2)}</td>
+                    <td>${decl.payer}</td>
+                    <td>${decl.remarks}</td>
+                    <td class="actions-cell">
+                        <button onclick="editDeclaration('${decl.id}')" class="btn btn-edit rounded-lg text-sm px-3 py-1.5">Edit</button>
+                        <button onclick="deleteDeclaration('${decl.id}')" class="btn btn-delete rounded-lg text-sm px-3 py-1.5">Delete</button>
+                    </td>
+                `;
+                declarationTableBody.appendChild(row);
+            });
+        }
+
+        /**
+         * Adds a new declaration or updates an existing one.
+         * @param {Event} event The form submission event.
+         */
+        function addOrUpdateDeclaration(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const newDeclaration = {
+                declarationNo: declarationNoInput.value,
+                paymentId: paymentIdInput.value,
+                paymentDate: paymentDateInput.value,
+                customDuty: parseFloat(customDutyInput.value),
+                vat: parseFloat(vatInput.value),
+                boeOtherCharges: parseFloat(boeOtherChargesInput.value),
+                payer: payerInput.value,
+                remarks: remarksInput.value
+            };
+
+            if (currentEditId) {
+                // Update existing declaration
+                const index = declarations.findIndex(decl => decl.id === currentEditId);
+                if (index !== -1) {
+                    declarations[index] = { ...declarations[index], ...newDeclaration };
+                }
+                currentEditId = null; // Reset edit mode
+            } else {
+                // Add new declaration
+                newDeclaration.id = generateUniqueId();
+                declarations.push(newDeclaration);
+            }
+
+            clearForm(); // Clear the form after submission
+            performSearch(); // Refresh the table with any active search filter
+        }
+
+        /**
+         * Populates the form with data from a selected declaration for editing.
+         * @param {string} id The ID of the declaration to edit.
+         */
+        function editDeclaration(id) {
+            const declToEdit = declarations.find(decl => decl.id === id);
+            if (declToEdit) {
+                declarationIdInput.value = declToEdit.id;
+                declarationNoInput.value = declToEdit.declarationNo;
+                paymentIdInput.value = declToEdit.paymentId;
+                paymentDateInput.value = declToEdit.paymentDate;
+                customDutyInput.value = declToEdit.customDuty;
+                vatInput.value = declToEdit.vat;
+                boeOtherChargesInput.value = declToEdit.boeOtherCharges;
+                payerInput.value = declToEdit.payer;
+                remarksInput.value = declToEdit.remarks;
+                currentEditId = id; // Set the current edit ID
+            }
+        }
+
+        /**
+         * Deletes a declaration from the array.
+         * @param {string} id The ID of the declaration to delete.
+         */
+        function deleteDeclaration(id) {
+            // Using a custom modal for confirmation instead of alert() or confirm()
+            showConfirmationModal('Are you sure you want to delete this declaration?', () => {
+                declarations = declarations.filter(decl => decl.id !== id);
+                performSearch(); // Refresh the table with any active search filter
+                clearForm(); // Clear the form in case the deleted item was being edited
+            });
+        }
+
+        /**
+         * Clears all input fields in the form and resets edit mode.
+         */
+        function clearForm() {
+            declarationForm.reset(); // Resets all form fields
+            declarationIdInput.value = '';
+            currentEditId = null; // Exit edit mode
+        }
+
+        /**
+         * Filters declarations based on the search keyword.
+         */
+        function performSearch() {
+            const keyword = searchKeywordInput.value.toLowerCase().trim();
+            let filteredDeclarations = [];
+
+            if (keyword === '') {
+                filteredDeclarations = declarations; // If no keyword, show all
+            } else {
+                filteredDeclarations = declarations.filter(decl =>
+                    decl.declarationNo.toLowerCase().includes(keyword) ||
+                    decl.paymentId.toLowerCase().includes(keyword) ||
+                    decl.payer.toLowerCase().includes(keyword) ||
+                    decl.remarks.toLowerCase().includes(keyword)
+                );
+            }
+            displayDeclarations(filteredDeclarations);
+        }
+
+        /**
+         * Clears the search input and displays all declarations.
+         */
+        function clearSearch() {
+            searchKeywordInput.value = '';
+            displayDeclarations();
+        }
+
+        /**
+         * Shows a custom confirmation modal.
+         * @param {string} message - The message to display in the modal.
+         * @param {function} onConfirm - Callback function to execute if confirmed.
+         */
+        function showConfirmationModal(message, onConfirm) {
+            // Create modal elements
+            const modalOverlay = document.createElement('div');
+            modalOverlay.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50';
+            modalOverlay.id = 'confirmationModalOverlay';
+
+            const modalContent = document.createElement('div');
+            modalContent.className = 'bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center';
+
+            const modalMessage = document.createElement('p');
+            modalMessage.className = 'text-lg font-semibold mb-6';
+            modalMessage.textContent = message;
+
+            const buttonContainer = document.createElement('div');
+            buttonContainer.className = 'flex justify-center space-x-4';
+
+            const confirmButton = document.createElement('button');
+            confirmButton.className = 'btn btn-delete px-6 py-2 rounded-lg';
+            confirmButton.textContent = 'Yes, Delete';
+            confirmButton.onclick = () => {
+                onConfirm();
+                document.body.removeChild(modalOverlay);
+            };
+
+            const cancelButton = document.createElement('button');
+            cancelButton.className = 'btn btn-secondary px-6 py-2 rounded-lg';
+            cancelButton.textContent = 'Cancel';
+            cancelButton.onclick = () => {
+                document.body.removeChild(modalOverlay);
+            };
+
+            buttonContainer.appendChild(confirmButton);
+            buttonContainer.appendChild(cancelButton);
+            modalContent.appendChild(modalMessage);
+            modalContent.appendChild(buttonContainer);
+            modalOverlay.appendChild(modalContent);
+            document.body.appendChild(modalOverlay);
+        }
+
+
+        // Event Listeners
+        declarationForm.addEventListener('submit', addOrUpdateDeclaration);
+        clearFormBtn.addEventListener('click', clearForm);
+        searchBtn.addEventListener('click', performSearch);
+        clearSearchBtn.addEventListener('click', clearSearch);
+        // Optional: Perform search on keyup for instant filtering
+        searchKeywordInput.addEventListener('keyup', performSearch);
+
+
+        // Initial display of declarations (in case there's any pre-loaded data, though none here)
+        document.addEventListener('DOMContentLoaded', displayDeclarations);
+    </script>
+</body>
+</html>
